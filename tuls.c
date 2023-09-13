@@ -26,10 +26,10 @@ int main(int argc, char *argv[]) {
    
     struct dirent **namelist;
     int n;
-    //from pdf of project part A
+    //scandir example from pdf of project part A
     n=scandir(".",&namelist,NULL, alphasort);
     if (n == -1) {
-        printf("%s", "tuls: cannot open directory");
+        printf("%s\n", "tuls: cannot open directory");
         exit(1);
     }
     while (n--)
