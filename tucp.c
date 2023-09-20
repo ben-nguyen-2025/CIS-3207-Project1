@@ -10,15 +10,16 @@
 
 
 
-char *readFile(char *path, int maxLength, FILE *fPtr);
-void copyFile(char *source, char *destination, FILE *fPtr);
+char *readFile(char *path, int maxLength);
+void copyFile(char *source, char *destination);
+void copyFileDirectory(char *source, char *destination);
+
 char *readPhoto(char *path, int maxLength, FILE *fPtr);
 int isDirectory(const char *path);
 
 
 int main(int argc, char *argv[]) { 
     //char *path = (char *) malloc(4096);
-    FILE *fptr;
     struct stat itemStats;
 
     if (argc < 3) { // ./tucp apple bear --> argc = 3
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
     //find properties of last item in function (directory or file?)
     //deal with accordingly based on number of items
     char * destination = argv[argc - 1];
-    printf("%d", isDirectory("rat.jpg"));
+   // printf("%d", isDirectory("rat.jpg"));
     /*
     if (stat(destination, &itemStats) == -1 ) { //checks if item does not exist
         fptr = fopen(destination, "w"); //if it doesn't, creates file 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
     */
 
     if (!isDirectory(destination)) { //checks if item is not a directory (is then a file)
-        fptr = fopen(destination, "w"); //if it doesn't exist, creates file 
+        //fptr = fopen(destination, "w"); //if it doesn't exist, creates file 
         //fprintf(fptr, "file didn't exist");
         if (argc > 3) {
             printf("%s", "error: trying to copy multiple files into destination file");
@@ -45,24 +46,38 @@ int main(int argc, char *argv[]) {
         }
 
         if (stat(argv[1], &itemStats) == 0) { //checks if item exists
-            copyFile(argv[1], destination, fptr);
+            copyFile(argv[1], destination);
             //char *fileContents = readFile(argv[1], MAXFILEREAD, fptr);
             //printf("%s", fileContents);
             //fprintf(fptr, "%s", fileContents);
         } else {
-            printf("error: copied from file argument %d doesn't exist", 1);
+            printf("error: source file doesn't exist");
             exit(EXIT_FAILURE);
         }
 
     }
     else { //must be directory
-
+       
+        
+        for (unsigned int i = 1; i < argc - 1; i++) {
+            char *path = (char *) malloc(4096);
+            strcpy(path, destination);
+           // printf("%d", i);
+            if (stat(argv[i], &itemStats) == 0) { //checks if item exists
+                strcat(path, "/");
+                strcat(path, argv[i]);
+                copyFile(argv[i], path);
+                
+                free(path);
+            } else {
+                printf("error: source file doesn't exist");
+                exit(EXIT_FAILURE);
+            }
+            
+        }
+        
     }
     //printf("%d", isDirectory(destination));
-
-   
-    
-    
    //printf("%s", destination);
 
    exit(EXIT_SUCCESS);
@@ -75,14 +90,27 @@ int isDirectory(const char *path) { //macro to determine if something is directo
    return S_ISDIR(statbuf.st_mode); //1 if directory, 0 if not
 }
 
-char *readFile(char *path, int maxLength, FILE *fPtr) { //assumes file exists
-    fPtr = fopen(path, "r");
+char *readFile(char *path, int maxLength) { //assumes file exists
+    FILE *fPtr = fopen(path, "r");
     char *fileContent = (char *) malloc(maxLength);
     fgets(fileContent, maxLength, fPtr);
     return fileContent;
 }
 
-void copyFile(char *source, char *destination, FILE *fPtr) {
-    char *fileContents = readFile(source, MAXFILEREAD, fPtr);
+void copyFile(char *source, char *destination) {
+    FILE *fPtr = fopen(destination, "w");
+    char *fileContents = readFile(source, MAXFILEREAD);
     fprintf(fPtr, "%s", fileContents);
 }
+
+char *readFileDirectory(char *path, char *fileName, int maxLength) { //assumes file exists
+    path = (char *) malloc(4096);
+    strcat(path, "/");
+    strcat(path, fileName);
+    //printf("%s", path);
+    FILE *fPtr = fopen(path, "r");
+    char *fileContent = (char *) malloc(maxLength);
+    fgets(fileContent, maxLength, fPtr);
+    return fileContent;
+}
+
