@@ -6,13 +6,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-#define MAXFILEREAD 10000000
-
 
 
 char *readFile(char *path);
 void copyFile(char *source, char *destination);
-char *readPhoto(char *path, int maxLength, FILE *fPtr);
 int isDirectory(const char *path);
 
 
@@ -26,18 +23,9 @@ int main(int argc, char *argv[]) {
     }
     //find properties of last item in function (directory or file?)
     //deal with accordingly based on number of items
-    char * destination = argv[argc - 1];
-   // printf("%d", isDirectory("rat.jpg"));
-    /*
-    if (stat(destination, &itemStats) == -1 ) { //checks if item does not exist
-        fptr = fopen(destination, "w"); //if it doesn't, creates file 
-        printf("file didn't exist");
-    }
-    */
+    char * destination = argv[argc - 1]; //last item in argv = file/directory to copy into
 
-    if (!isDirectory(destination)) { //checks if item is not a directory (is then a file)
-        //fptr = fopen(destination, "w"); //if it doesn't exist, creates file 
-        //fprintf(fptr, "file didn't exist");
+    if (!isDirectory(destination)) { //checks if item is not a directory (is therefore a file)
         if (argc > 3) {
             printf("%s", "error: trying to copy multiple files into destination file");
             exit(EXIT_FAILURE);
@@ -45,18 +33,13 @@ int main(int argc, char *argv[]) {
 
         if (stat(argv[1], &itemStats) == 0) { //checks if item exists
             copyFile(argv[1], destination);
-            //char *fileContents = readFile(argv[1], MAXFILEREAD, fptr);
-            //printf("%s", fileContents);
-            //fprintf(fptr, "%s", fileContents);
-        } else {
+        } else { 
             printf("error: source file doesn't exist");
             exit(EXIT_FAILURE);
         }
 
     }
     else { //must be directory
-       
-        
         for (unsigned int i = 1; i < argc - 1; i++) {
             char *path = (char *) malloc(4096);
             strcpy(path, destination);
@@ -66,7 +49,7 @@ int main(int argc, char *argv[]) {
                 strcat(path, argv[i]);
                 copyFile(argv[i], path);
                 
-                free(path);
+                free(path); //frees path memory, allowing for cycling through files 
             } else {
                 printf("error: source file doesn't exist");
                 exit(EXIT_FAILURE);
@@ -91,6 +74,7 @@ char *readFile(char *path) { //assumes file exists
     stat(path, &itemStats);
     char *fileContent = (char *) malloc(itemStats.st_size);
     fread(fileContent, 1, itemStats.st_size, fPtr);
+    fclose(fPtr);
     return fileContent;
 }
 
@@ -100,6 +84,8 @@ void copyFile(char *source, char *destination) {
     stat(source, &itemStats);
     char *fileContents = readFile(source);
     fwrite(fileContents, 1, itemStats.st_size, fPtr);
+    fclose(fPtr);
+    free(fileContents);
 }
 
 
