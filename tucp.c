@@ -10,10 +10,8 @@
 
 
 
-char *readFile(char *path, int maxLength);
+char *readFile(char *path);
 void copyFile(char *source, char *destination);
-void copyFileDirectory(char *source, char *destination);
-
 char *readPhoto(char *path, int maxLength, FILE *fPtr);
 int isDirectory(const char *path);
 
@@ -77,9 +75,6 @@ int main(int argc, char *argv[]) {
         }
         
     }
-    //printf("%d", isDirectory(destination));
-   //printf("%s", destination);
-
    exit(EXIT_SUCCESS);
 }
 
@@ -90,27 +85,21 @@ int isDirectory(const char *path) { //macro to determine if something is directo
    return S_ISDIR(statbuf.st_mode); //1 if directory, 0 if not
 }
 
-char *readFile(char *path, int maxLength) { //assumes file exists
-    FILE *fPtr = fopen(path, "r");
-    char *fileContent = (char *) malloc(maxLength);
-    fgets(fileContent, maxLength, fPtr);
+char *readFile(char *path) { //assumes file exists
+    FILE *fPtr = fopen(path, "rb");
+    struct stat itemStats;
+    stat(path, &itemStats);
+    char *fileContent = (char *) malloc(itemStats.st_size);
+    fread(fileContent, 1, itemStats.st_size, fPtr);
     return fileContent;
 }
 
 void copyFile(char *source, char *destination) {
-    FILE *fPtr = fopen(destination, "w");
-    char *fileContents = readFile(source, MAXFILEREAD);
-    fprintf(fPtr, "%s", fileContents);
+    FILE *fPtr = fopen(destination, "wb");
+    struct stat itemStats;
+    stat(source, &itemStats);
+    char *fileContents = readFile(source);
+    fwrite(fileContents, 1, itemStats.st_size, fPtr);
 }
 
-char *readFileDirectory(char *path, char *fileName, int maxLength) { //assumes file exists
-    path = (char *) malloc(4096);
-    strcat(path, "/");
-    strcat(path, fileName);
-    //printf("%s", path);
-    FILE *fPtr = fopen(path, "r");
-    char *fileContent = (char *) malloc(maxLength);
-    fgets(fileContent, maxLength, fPtr);
-    return fileContent;
-}
 
